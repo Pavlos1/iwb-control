@@ -13,7 +13,12 @@ fn main() {
     println!("Length is: {}", output.len());
     for i in output
     {
-        let (addr, name) = i;
+        let (addr, name): (String, String) = i;
         println!("{}; {}", addr, name);
+        match networking::send_command(addr, "PWR?\r", None)
+        {
+            Ok(v) => println!("{}", v),
+            Err(e) => println!("{}", e),
+        };
     }
 }

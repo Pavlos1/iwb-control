@@ -1,5 +1,3 @@
-extern crate time;
-
 use std::net::TcpStream;
 use std::net::UdpSocket;
 use std::io::prelude::*;
@@ -8,6 +6,7 @@ use std::thread;
 
 use std::net::SocketAddrV4;
 use std::net::Ipv4Addr;
+use std::net::SocketAddr;
 
 pub fn discover_hosts() -> Result<Vec<(String, String)>, &'static str>
 {
@@ -25,7 +24,7 @@ pub fn discover_hosts() -> Result<Vec<(String, String)>, &'static str>
     let buf: &mut [u8] = &mut [0; 1024];
     
     let mut ret = Vec::<(String, String)>::new();
-    thread::sleep_ms(5000); // Wait 5s for all responses to come in.
+    thread::sleep_ms(10000); // Wait 5s for all responses to come in.
     let _ = socket.send_to("\x45\x45".as_bytes(), "127.0.0.1:3629"); // This packet indicates that it is time to stop listening.
     
     loop
@@ -74,16 +73,45 @@ pub fn discover_hosts() -> Result<Vec<(String, String)>, &'static str>
     Ok(ret)
 }
 
-pub fn connect_tcp(addr: &str) -> Result<TcpStream, &'static str>
+pub fn connect_tcp(addr: String, password: Option<String>) -> Result<TcpStream, &'static str>
 {
     let buf: &mut [u8] = &mut [0; 1024];
-    let stream_ = TcpStream::connect(addr);
+    let stream_ = TcpStream::connect(addr.parse::<SocketAddr>().unwrap());
     
     if stream_.is_ok()
     {
         let mut stream = stream_.unwrap();
-        
-        let _ = stream.write("ESC/VP.net\x10\x03\x00\x00\x00\x00".as_bytes());
+        let password_provided = match password
+        {
+            None => false,
+            Some(_) => true,
+        };
+        if password_provided
+        {
+            let pass = password.unwrap();
+            if pass.len() > 16
+            {
+                return Err("password_too_long");
+            }
+            let mut header: [u8; 34] = [0; 34];
+            let mut position = 0;
+            for i in "ESC/VP.net\x10\x03\x00\x00\x00\x01\x01\x01".as_bytes()
+            {
+                header[position] = *i;
+                position += 1;
+            }
+            for i in pass.as_bytes()
+            {
+                header[position] = *i;
+                position += 1;
+            }
+            let _ = stream.write(&header[..]);
+        }
+        else
+        {
+            let _ = stream.write("ESC/VP.net\x10\x03\x00\x00\x00\x00".as_bytes());
+        }
+
         let _ = stream.read(buf);
     
         if buf[0..10] == "ESC/VP.net".as_bytes()[..] // Actually, this goes up to index 9.
@@ -105,10 +133,10 @@ pub fn connect_tcp(addr: &str) -> Result<TcpStream, &'static str>
     }
 }
 
-pub fn send_command<'a>(addr: &'a str, command: &'a str) -> Result<String, &'a str>
+pub fn send_command(addr: String, command: &str, password: Option<String>) -> Result<String, &'static str>
 {
     let buf: &mut [u8] = &mut [0; 1024];
-    let stream_ = connect_tcp(addr);
+    let stream_ = connect_tcp(addr, password);
     
     if stream_.is_ok()
     {
