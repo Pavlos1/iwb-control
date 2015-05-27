@@ -1,3 +1,4 @@
+extern crate libc;
 mod networking;
 
 //use std::vec::Vec;
@@ -15,7 +16,7 @@ fn main() {
     {
         let (addr, name): (String, String) = i;
         println!("{}; {}", addr, name);
-        match networking::send_command(addr, "PWR?\r", None)
+        match networking::send_command(addr, "PWR?".to_string(), None)
         {
             Ok(v) => println!("{}", v),
             Err(e) => println!("{}", e),

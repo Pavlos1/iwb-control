@@ -1,7 +1,11 @@
 [package]
 name = "iwb-control"
-version = "0.1.0"
+version = "0.0.1"
 authors = ["Pavel <zak0005@jmss.vic.edu.au>"]
 
+[dependencies.gtk]
+git = "https://github.com/rust-gnome/gtk.git"
+features = ["gtk_3_12"]
+
 [dependencies]
-time = "0.1"
+libc = "0.1.8"
