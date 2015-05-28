@@ -12,6 +12,35 @@ use std::net::Ipv4Addr;
 use std::net::SocketAddr;
 use libc::types::os::common::posix01::timeval;
 
+#[cfg(target_os = "linux")]
+pub fn set_sock_timeout_udp(socket: &UdpSocket, timeout: timeval)
+{
+    use std::os::unix::prelude::*;
+        {
+            let raw_socket = (*socket).as_raw_fd();
+            let payload = &timeout as *const timeval as *const libc::c_void;
+            unsafe
+            {
+                let _ = libc::setsockopt(raw_socket, libc::SOL_SOCKET, libc::SO_RCVTIMEO, payload, mem::size_of::<timeval>() as u32);
+            }
+        }
+}
+
+#[cfg(target_os = "windows")]
+pub fn set_sock_timeout_udp(socket: &UdpSocket, timeout: timeval)
+{
+    use std::os::windows::prelude::*;
+        {
+            let raw_socket = (*socket).as_raw_socket();
+            let payload = &timeout as *const timeval as *const libc::c_void;
+            unsafe
+            {
+                let _ = libc::setsockopt(raw_socket, libc::SOL_SOCKET, libc::SO_RCVTIMEO, payload, mem::size_of::<timeval>() as u32);
+            } 
+        }
+}
+
+
 pub fn discover_hosts() -> Result<Vec<(String, String)>, &'static str>
 {
     let socket_ = UdpSocket::bind("0.0.0.0:3629");
@@ -22,23 +51,7 @@ pub fn discover_hosts() -> Result<Vec<(String, String)>, &'static str>
     let socket = socket_.unwrap();
     
     // Set socket read timeout to 5s, by using low-level libc functions. Why do you make this so complicated, rust?
-    if cfg!(target_os = "windows")
-    {
-        return Err("Sorry, Windows is currently not supported.");
-    }
-    else
-    {
-        use std::os::unix::prelude::*;
-        {
-            let raw_socket = socket.as_raw_fd();
-            let timeout = timeval {tv_sec: 5, tv_usec: 0};
-            let payload = &timeout as *const timeval as *const libc::c_void;
-            unsafe
-            {
-                let _ = libc::setsockopt(raw_socket, libc::SOL_SOCKET, libc::SO_RCVTIMEO, payload, mem::size_of::<timeval>() as u32);
-            }
-        }
-    }
+    set_sock_timeout_udp(&socket, timeval {tv_sec:5, tv_usec:0});
     
     for i in 1..255 // Broadcast doesn't work with the Monash network, so I must do this.
     {
