@@ -12,7 +12,7 @@ use std::net::Ipv4Addr;
 use std::net::SocketAddr;
 use libc::types::os::common::posix01::timeval;
 
-#[cfg(target_os = "linux")]
+#[cfg(not(target_os = "windows"))]
 pub fn set_sock_timeout_udp(socket: &UdpSocket, timeout: timeval)
 {
     use std::os::unix::prelude::*;
@@ -22,6 +22,7 @@ pub fn set_sock_timeout_udp(socket: &UdpSocket, timeout: timeval)
             unsafe
             {
                 let _ = libc::setsockopt(raw_socket, libc::SOL_SOCKET, libc::SO_RCVTIMEO, payload, mem::size_of::<timeval>() as u32);
+                let _ = libc::setsockopt(raw_socket, libc::SOL_SOCKET, libc::SO_SNDTIMEO, payload, mem::size_of::<timeval>() as u32);
             }
         }
 }
@@ -36,10 +37,40 @@ pub fn set_sock_timeout_udp(socket: &UdpSocket, timeout: timeval)
             unsafe
             {
                 let _ = libc::setsockopt(raw_socket, libc::SOL_SOCKET, libc::SO_RCVTIMEO, payload, mem::size_of::<timeval>() as u32);
+                let _ = libc::setsockopt(raw_socket, libc::SOL_SOCKET, libc::SO_SNDTIMEO, payload, mem::size_of::<timeval>() as u32);
             } 
         }
 }
 
+#[cfg(not(target_os = "windows"))]
+pub fn set_sock_timeout_tcp(socket: &TcpStream, timeout: timeval)
+{
+    use std::os::unix::prelude::*;
+        {
+            let raw_socket = (*socket).as_raw_fd();
+            let payload = &timeout as *const timeval as *const libc::c_void;
+            unsafe
+            {
+                let _ = libc::setsockopt(raw_socket, libc::SOL_SOCKET, libc::SO_RCVTIMEO, payload, mem::size_of::<timeval>() as u32);
+                let _ = libc::setsockopt(raw_socket, libc::SOL_SOCKET, libc::SO_SNDTIMEO, payload, mem::size_of::<timeval>() as u32);
+            }
+        }
+}
+
+#[cfg(target_os = "windows")]
+pub fn set_sock_timeout_tcp(socket: &TcpStream, timeout: timeval)
+{
+    use std::os::windows::prelude::*;
+        {
+            let raw_socket = (*socket).as_raw_socket();
+            let payload = &timeout as *const timeval as *const libc::c_void;
+            unsafe
+            {
+                let _ = libc::setsockopt(raw_socket, libc::SOL_SOCKET, libc::SO_RCVTIMEO, payload, mem::size_of::<timeval>() as u32);
+                let _ = libc::setsockopt(raw_socket, libc::SOL_SOCKET, libc::SO_SNDTIMEO, payload, mem::size_of::<timeval>() as u32);
+            } 
+        }
+}
 
 pub fn discover_hosts() -> Result<Vec<(String, String)>, &'static str>
 {
@@ -122,6 +153,7 @@ pub fn connect_tcp(addr: String, password: Option<String>) -> Result<TcpStream, 
     if stream_.is_ok()
     {
         let mut stream = stream_.unwrap();
+        set_sock_timeout_tcp(&stream, timeval {tv_sec:5, tv_usec:0});
         let password_provided = match password
         {
             None => false,
