@@ -36,8 +36,8 @@ pub fn set_sock_timeout_udp(socket: &UdpSocket, timeout: timeval)
             let payload = &timeout as *const timeval as *const libc::c_void;
             unsafe
             {
-                let _ = libc::setsockopt(raw_socket, libc::SOL_SOCKET, libc::SO_RCVTIMEO, payload, mem::size_of::<timeval>() as u32);
-                let _ = libc::setsockopt(raw_socket, libc::SOL_SOCKET, libc::SO_SNDTIMEO, payload, mem::size_of::<timeval>() as u32);
+                let _ = libc::setsockopt(raw_socket, libc::SOL_SOCKET, libc::SO_RCVTIMEO, payload, mem::size_of::<timeval>() as i32);
+                let _ = libc::setsockopt(raw_socket, libc::SOL_SOCKET, libc::SO_SNDTIMEO, payload, mem::size_of::<timeval>() as i32);
             } 
         }
 }
@@ -66,8 +66,8 @@ pub fn set_sock_timeout_tcp(socket: &TcpStream, timeout: timeval)
             let payload = &timeout as *const timeval as *const libc::c_void;
             unsafe
             {
-                let _ = libc::setsockopt(raw_socket, libc::SOL_SOCKET, libc::SO_RCVTIMEO, payload, mem::size_of::<timeval>() as u32);
-                let _ = libc::setsockopt(raw_socket, libc::SOL_SOCKET, libc::SO_SNDTIMEO, payload, mem::size_of::<timeval>() as u32);
+                let _ = libc::setsockopt(raw_socket, libc::SOL_SOCKET, libc::SO_RCVTIMEO, payload, mem::size_of::<timeval>() as i32);
+                let _ = libc::setsockopt(raw_socket, libc::SOL_SOCKET, libc::SO_SNDTIMEO, payload, mem::size_of::<timeval>() as i32);
             } 
         }
 }
