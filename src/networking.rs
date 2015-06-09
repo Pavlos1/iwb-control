@@ -1,4 +1,4 @@
-extern crate libc;
+use libc;
 
 use std::net::TcpStream;
 use std::net::UdpSocket;

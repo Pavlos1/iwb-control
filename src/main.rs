@@ -1,9 +1,14 @@
+#[macro_use]
+extern crate qmlrs;
 extern crate libc;
 mod networking;
+mod gui;
 
 //use std::vec::Vec;
 
 fn main() {
+    gui::create_main_window();
+    /*
     let output_ = networking::discover_hosts();
     if output_.is_err()
     {
@@ -22,4 +27,5 @@ fn main() {
             Err(e) => println!("{}", e),
         };
     }
+    */
 }
