@@ -24,10 +24,10 @@ ApplicationWindow
             id: selectionLayout
             //anchors.fill: parent
             anchors.margins: margin
+            anchors.top: mainLayout.top
         
             Button
             {
-                anchors.margins: margin
                 width: 150
                 height: 75
                 text: "Refresh hosts list"
@@ -38,6 +38,41 @@ ApplicationWindow
             {
                 anchors.margins: margin
                 id: hostsLayout
+                
+                Button
+                {
+                    //anchors.margins: margin
+                    id: spacerButton
+                    width: 150
+                    height: 75
+                    opacity: 0
+                    visible: true
+                    
+                    Component.onCompleted: hostsList.push(spacerButton)
+                }
+            }
+            
+            RowLayout
+            {
+                id: directConnectLayout
+                anchors.top: hostsLayout.bottom
+                
+                TextField
+                {
+                    anchors.bottom: directConnectLayout.bottom
+                    Layout.fillWidth: false
+                    focus: true
+                    id: directConnectInput
+                    onAccepted: openConnection(formatIP(directConnectInput.text))
+                }
+            
+                Button
+                {
+                    anchors.bottom: directConnectLayout.bottom
+                    id: directConnectButton
+                    text: "Direct connect"
+                    onClicked: openConnection(formatIP(directConnectInput.text))
+                }
             }
         }
         
@@ -323,6 +358,15 @@ ApplicationWindow
         return output;
     }
     
+    function formatIP(address)
+    {
+        if (address.search(":") == -1)
+        {
+            address = address+":3629";
+        }
+        return "Unknown @ "+address;
+    }
+    
     function refresh_hosts_and_show()
     {
         for (var i=0; i<hostsList.length; i++)
@@ -337,5 +381,6 @@ ApplicationWindow
         {
             hostsList.push(Qt.createQmlObject('import QtQuick 2.2; import QtQuick.Controls 1.2; Button { width: 150; height: 75; text: "'+formatDisplay(hosts[i])+'"; onClicked: openConnection("'+hosts[i]+'"); }', hostsLayout, "foo"));
         }
+        hostsList.push(Qt.createQmlObject('import QtQuick 2.2; import QtQuick.Controls 1.2; Button { width: 150; height: 75; opacity: 0; visible: true; }', hostsLayout, "foo"))
     }
 }
