@@ -45,6 +45,11 @@ impl Networking
         }
     }
     
+    fn close_connection(&mut self)
+    {
+        self.stream = None;
+    }
+    
     fn send_command(&mut self, command: String) -> String
     {
         let buf: &mut [u8] = &mut [0; 1024];
@@ -69,6 +74,7 @@ impl Networking
 Q_OBJECT! { Networking:
     slot fn discover_hosts();
     slot fn connect_tcp(String);
+    slot fn close_connection();
     slot fn send_command(String);
     slot fn set_password(String);
 }

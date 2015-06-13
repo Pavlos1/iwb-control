@@ -8,9 +8,9 @@ ApplicationWindow
     title: "ESC/VP.net client"
     
     property int margin: 11
-    width: mainLayout.implicitWidth + 2 * margin
+    width: mainLayout.implicitWidth + 2 * margin + 50
     height: mainLayout.implicitHeight + 2 * margin
-    minimumWidth: mainLayout.Layout.minimumWidth + 2 * margin
+    minimumWidth: mainLayout.Layout.minimumWidth + 2 * margin + 50
     minimumHeight: mainLayout.Layout.minimumHeight + 2 * margin
     
     RowLayout
@@ -27,6 +27,7 @@ ApplicationWindow
         
             Button
             {
+                anchors.margins: margin
                 width: 150
                 height: 75
                 text: "Refresh hosts list"
@@ -35,6 +36,7 @@ ApplicationWindow
         
             ColumnLayout
             {
+                anchors.margins: margin
                 id: hostsLayout
             }
         }
@@ -42,17 +44,29 @@ ApplicationWindow
         ColumnLayout
         {
             id: connectionLayout
-            //anchors.fill: parent
+            anchors.top: mainLayout.top
+            anchors.bottom: mainLayout.bottom
+            anchors.right: mainLayout.right
             anchors.margins: margin
             
             Text
             {
+                anchors.margins: margin
                 id: statusText
                 text: "No connections open";
             }
             
+            Text
+            {
+                anchors.margins: margin
+                id: displayText
+                text: ""
+                visible: false
+            }
+            
             RowLayout
             {
+                anchors.margins: margin
                 id: powerLayout
                 //anchors.fill: parent
                 
@@ -70,6 +84,26 @@ ApplicationWindow
                     visible: false
                 }
             }
+            
+            Button
+            {
+                anchors.margins: margin
+                anchors.bottom: closeButton.top
+                id: reconnectButton
+                text: "Reconnect"
+                visible: false
+                onClicked: { closeConnection(); openConnection(cachedDisplay); }
+            }
+            
+            Button
+            {
+                anchors.margins: margin
+                anchors.bottom: connectionLayout.bottom
+                id: closeButton
+                text: "Close"
+                visible: false
+                onClicked: { closeConnection(); reconnectButton.visible = true; closeButton.visible = false; }
+            }
         }
     }
     
@@ -83,20 +117,37 @@ ApplicationWindow
     }
     
     property variant hostsList: [];
+    property string cachedDisplay: "";
+    
+    function closeConnection()
+    {
+        powerText.visible = false;
+        powerSwitch.visible = false;
+        displayText.visible = false;
+        updateTimer.running = false;
+        statusText.text = "Connection closed.";
+        Networking.close_connection();
+    }
     
     function openConnection(display)
     {
         var status = Networking.connect_tcp(display);
+        cachedDisplay = display;
         
         if (status === "OK")
         {
             powerText.visible = true;
             powerSwitch.visible = true;
+            displayText.visible = true;
+            reconnectButton.visible = true;
+            closeButton.visible = true;
+            displayText.text = formatDisplay(display);
             updateTimer.running = true;
         } else {
-            powerText.visible = false;
-            powerSwitch.visible = false;
-            updateTimer.running = false;
+            closeConnection();
+            statusText.text = "Connection failed.";
+            reconnectButton.visible = true;
+            closeButton.visible = false;
         }
         
         statusText.text = status;
@@ -108,10 +159,10 @@ ApplicationWindow
         var powIndex = power.search("PWR=");
         if (powIndex === -1)
         {
-            powerText.visible = false;
-            powerSwitch.visible = false;
-            updateTimer.running = false;
+            closeConnection();
             statusText.text = "Connection closed by host. Try reconnecting.";
+            reconnectButton.visible = true;
+            closeButton.visible = false;
         } else {
             if (power[powIndex+4] + power[powIndex+5] == "01")
             {
