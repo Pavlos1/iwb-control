@@ -56,7 +56,7 @@ impl Networking
         let mut stream = match self.stream
         {
             Some(ref v) => v,
-            None => panic!("send_command was called before opening a connection!"),
+            None => return "Error: no connection open".to_string(),
         };
         let _ = stream.write(command.as_bytes());
         let _ = stream.write("\r".as_bytes());

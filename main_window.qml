@@ -82,6 +82,14 @@ ApplicationWindow
                     id: powerSwitch
                     checked: false
                     visible: false
+                    onClicked: { if (!powerSwitch.checked) { Networking.send_command("PWR OFF"); } else { Networking.send_command("PWR ON"); } }
+                }
+                
+                Text
+                {
+                    anchors.margins: margin
+                    id: powerLevel
+                    visible: false
                 }
             }
             
@@ -103,6 +111,7 @@ ApplicationWindow
                     id: hreverseSwitch
                     checked: false
                     visible: false
+                    onClicked: { if (!hreverseSwitch.checked) { Networking.send_command("HREVERSE OFF"); } else { Networking.send_command("HREVERSE ON"); } }
                 }
             }
                 
@@ -124,6 +133,7 @@ ApplicationWindow
                     id: vreverseSwitch
                     checked: false
                     visible: false
+                    onClicked: { if (!vreverseSwitch.checked) { Networking.send_command("VREVERSE OFF"); } else { Networking.send_command("VREVERSE ON"); } }
                 }
             }
             
@@ -169,6 +179,7 @@ ApplicationWindow
         hreverseSwitch.visible = false;
         vreverseText.visible = false;
         vreverseSwitch.visible = false;
+        powerLevel.visible = false;
 
         displayText.visible = false;
         updateTimer.running = false;
@@ -190,6 +201,7 @@ ApplicationWindow
             hreverseSwitch.visible = false;
             vreverseText.visible = false;
             vreverseSwitch.visible = false;
+            powerLevel.visible = true;
             
             reconnectButton.visible = true;
             closeButton.visible = true;
@@ -215,6 +227,7 @@ ApplicationWindow
             reconnectButton.visible = true;
             closeButton.visible = false;
         } else {
+            powerLevel.text = "("+power+")";
             if (power == "01")
             {
                 powerSwitch.checked = true;
