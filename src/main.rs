@@ -4,8 +4,6 @@ extern crate libc;
 mod networking;
 mod gui;
 
-//use std::vec::Vec;
-
 fn main() {
     gui::create_main_window();
     /*

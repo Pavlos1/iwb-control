@@ -7,4 +7,4 @@ authors = ["Pavel <zak0005@jmss.vic.edu.au>"]
 libc = "0.1.8"
 
 [dependencies.qmlrs]
-git = "https://github.com/cyndis/qmlrs.git"
+git = "https://github.com/Pavlos1/qmlrs.git"

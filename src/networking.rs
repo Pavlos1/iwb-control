@@ -148,7 +148,15 @@ pub fn discover_hosts() -> Result<Vec<(String, String)>, &'static str>
 pub fn connect_tcp(addr: String, password: Option<String>) -> Result<TcpStream, &'static str>
 {
     let buf: &mut [u8] = &mut [0; 1024];
-    let stream_ = TcpStream::connect(addr.parse::<SocketAddr>().unwrap());
+    let addr_ = addr.parse::<SocketAddr>();
+    if addr_.is_err() {
+        return match addr_
+        {
+            Err(_) => Err("Parse error on address given"),
+            Ok(_) => unreachable!(),
+        }
+    }
+    let stream_ = TcpStream::connect(addr_.unwrap());
     
     if stream_.is_ok()
     {

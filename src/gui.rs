@@ -3,11 +3,12 @@ use qmlrs;
 
 use std::vec::Vec;
 use std::io::prelude::*;
+use std::net::TcpStream;
 
-struct DiscoverHosts;
-impl DiscoverHosts
+struct Networking { stream: Option<TcpStream>, password: Option<String> }
+impl Networking
 {
-    fn discover_hosts(&self) -> String 
+    fn discover_hosts(&self) -> String // this is a comment.
     {
         match networking::discover_hosts()
         {
@@ -15,10 +16,61 @@ impl DiscoverHosts
             Err(e) => stringify_vector(err_vec(e)),
         }
     }
+    
+    fn connect_tcp(&mut self, display: String) -> String
+    {
+        let mut addr = String::new();
+        let mut addr_start = false;
+        let mut at_reached = false;
+        for i in display.chars()
+        {
+            if addr_start { addr.push(i); }
+            else if i == '@' { at_reached = true; }
+            else if at_reached && (i == ' ') { addr_start = true; }
+        }
+
+        let stream_ = networking::connect_tcp(addr, self.password.clone());
+        if stream_.is_ok()
+        {
+            self.stream = Some(stream_.unwrap());
+            "OK".to_string()
+        }
+        else
+        {
+            match stream_
+            {
+                Ok(_) => unreachable!(),
+                Err(e) => e.to_string(),
+            }
+        }
+    }
+    
+    fn send_command(&mut self, command: String) -> String
+    {
+        let buf: &mut [u8] = &mut [0; 1024];
+        let mut stream = match self.stream
+        {
+            Some(ref v) => v,
+            None => panic!("send_command was called before opening a connection!"),
+        };
+        let _ = stream.write(command.as_bytes());
+        let _ = stream.write("\r".as_bytes());
+        let _ = stream.read(&mut (*buf));
+        
+        String::from_utf8_lossy(buf).replace("\r:", "")
+    }
+    
+    fn set_password(&mut self, password: String)
+    {
+        self.password = Some(password);
+    }
 }
 
-Q_OBJECT! { DiscoverHosts:
+Q_OBJECT! { Networking:
     slot fn discover_hosts();
+    slot fn connect_tcp(String);
+    slot fn send_command(String);
+    slot fn set_password(String);
 }
 
 pub fn stringify_vector(vector: Vec<(String, String)>) -> String
@@ -52,7 +104,7 @@ pub fn err_vec(e: &'static str) -> Vec<(String, String)>
 pub fn create_main_window()
 {
     let mut engine = qmlrs::Engine::new();
-    engine.set_property("DiscoverHosts", DiscoverHosts);
+    engine.set_property("Networking", Networking { stream: None, password: None });
     engine.load_local_file("main_window.qml");
     
     engine.exec();
