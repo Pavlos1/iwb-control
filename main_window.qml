@@ -85,6 +85,48 @@ ApplicationWindow
                 }
             }
             
+            RowLayout
+            {
+                anchors.margins: margin
+                id: hreverseLayout
+                //anchors.fill: parent
+                
+                Text
+                {
+                    id: hreverseText
+                    text: "HREVERSE: "
+                    visible: false
+                }
+                
+                Switch
+                {
+                    id: hreverseSwitch
+                    checked: false
+                    visible: false
+                }
+            }
+                
+            RowLayout
+            {
+                anchors.margins: margin
+                id: vreverseLayout
+                //anchors.fill: parent
+                
+                Text
+                {
+                    id: vreverseText
+                    text: "VREVERSE: "
+                    visible: false
+                }
+                
+                Switch
+                {
+                    id: vreverseSwitch
+                    checked: false
+                    visible: false
+                }
+            }
+            
             Button
             {
                 anchors.margins: margin
@@ -110,7 +152,7 @@ ApplicationWindow
     Timer
     {
         id: updateTimer
-        interval: 500
+        interval: 1000
         running: false
         repeat: true
         onTriggered: updateStates()
@@ -123,6 +165,11 @@ ApplicationWindow
     {
         powerText.visible = false;
         powerSwitch.visible = false;
+        hreverseText.visible = false;
+        hreverseSwitch.visible = false;
+        vreverseText.visible = false;
+        vreverseSwitch.visible = false;
+
         displayText.visible = false;
         updateTimer.running = false;
         statusText.text = "Connection closed.";
@@ -139,6 +186,11 @@ ApplicationWindow
             powerText.visible = true;
             powerSwitch.visible = true;
             displayText.visible = true;
+            hreverseText.visible = false;
+            hreverseSwitch.visible = false;
+            vreverseText.visible = false;
+            vreverseSwitch.visible = false;
+            
             reconnectButton.visible = true;
             closeButton.visible = true;
             displayText.text = formatDisplay(display);
@@ -155,6 +207,56 @@ ApplicationWindow
     
     function updateStates()
     {
+        var power = getState("PWR");
+        if (power == "ERR")
+        {
+            closeConnection();
+            statusText.text = "Connection closed by host. Try reconnecting.";
+            reconnectButton.visible = true;
+            closeButton.visible = false;
+        } else {
+            if (power == "01")
+            {
+                powerSwitch.checked = true;
+                
+                hreverseText.visible = true;
+                hreverseSwitch.visible = true;
+                vreverseText.visible = true;
+                vreverseSwitch.visible = true;
+                
+                var hreverse = getState("HREVERSE");
+                if (hreverse == "ERR")
+                {
+                    closeConnection();
+                    statusText.text = "Connection closed by host. Try reconnecting.";
+                    reconnectButton.visible = true;
+                    closeButton.visible = false;
+                } else {
+                    if (hreverse == "ON") { hreverseSwitch.checked = true; }
+                    else { hreverseSwitch.checked = false; }
+                    
+                    var vreverse = getState("VREVERSE");
+                    if (vreverse == "ERR")
+                    {
+                        closeConnection();
+                        statusText.text = "Connection closed by host. Try reconnecting.";
+                        reconnectButton.visible = true;
+                        closeButton.visible = false;
+                    } else {
+                        if (vreverse == "ON") { vreverseSwitch.checked = true; }
+                        else { vreverseSwitch.checked = false; }
+                    }
+                }
+            } else {
+                powerSwitch.checked = false;
+                
+                hreverseText.visible = false;
+                hreverseSwitch.visible = false;
+                vreverseText.visible = false;
+                vreverseSwitch.visible = false;
+            }
+        }
+        
         var power = Networking.send_command("PWR?");
         var powIndex = power.search("PWR=");
         if (powIndex === -1)
@@ -170,6 +272,18 @@ ApplicationWindow
             } else {
                 powerSwitch.checked = false;
             }
+        }
+    }
+    
+    function getState(state)
+    {
+        var output = Networking.send_command(state+"?");
+        var outIndex = output.search(state+"=");
+        if (outIndex === -1)
+        {
+            return "ERR";
+        } else {
+            return output[outIndex + state.length + 1] + output[outIndex + state.length + 2]
         }
     }
     
