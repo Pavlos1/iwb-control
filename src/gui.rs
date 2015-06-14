@@ -67,7 +67,12 @@ impl Networking
     
     fn set_password(&mut self, password: String)
     {
-        self.password = Some(password);
+        if password != "".to_string()
+        {
+            self.password = Some(password);
+        } else {
+            self.password = None;
+        }
     }
 }
 

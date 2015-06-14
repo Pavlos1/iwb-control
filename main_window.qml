@@ -9,9 +9,9 @@ ApplicationWindow
     
     property int margin: 11
     width: mainLayout.implicitWidth + 2 * margin + 50
-    height: mainLayout.implicitHeight + 2 * margin
+    height: mainLayout.implicitHeight + 2 * margin + 75
     minimumWidth: mainLayout.Layout.minimumWidth + 2 * margin + 50
-    minimumHeight: mainLayout.Layout.minimumHeight + 2 * margin
+    minimumHeight: mainLayout.Layout.minimumHeight + 2 * margin + 75
     
     RowLayout
     {
@@ -88,7 +88,7 @@ ApplicationWindow
             {
                 anchors.margins: margin
                 id: statusText
-                text: "No connections open";
+                text: "<b>No connections open</b>";
             }
             
             Text
@@ -172,13 +172,32 @@ ApplicationWindow
                 }
             }
             
+            Text
+            {
+                anchors.margins: margin
+                anchors.bottom: passwordField.top
+                text: "Password (optional):"
+                visible: true
+            }
+            
+            TextField
+            {
+                Layout.fillWidth: false
+                anchors.margins: margin
+                anchors.bottom: reconnectButton.top
+                id: passwordField
+                visible: true
+                width: 100
+            }
+            
             Button
             {
                 anchors.margins: margin
                 anchors.bottom: closeButton.top
                 id: reconnectButton
                 text: "Reconnect"
-                visible: false
+                visible: true
+                opacity: 0
                 onClicked: { closeConnection(); openConnection(cachedDisplay); }
             }
             
@@ -197,9 +216,9 @@ ApplicationWindow
     Timer
     {
         id: updateTimer
-        interval: 1000
+        interval: 500
         running: false
-        repeat: true
+        repeat: false
         onTriggered: updateStates()
     }
     
@@ -218,12 +237,14 @@ ApplicationWindow
 
         displayText.visible = false;
         updateTimer.running = false;
-        statusText.text = "Connection closed.";
+        statusText.text = "<b>Connection closed</b>";
         Networking.close_connection();
     }
     
     function openConnection(display)
     {
+        reconnectButton.opacity = 1;
+        Networking.set_password(passwordField.text);
         var status = Networking.connect_tcp(display);
         cachedDisplay = display;
         
@@ -244,12 +265,12 @@ ApplicationWindow
             updateTimer.running = true;
         } else {
             closeConnection();
-            statusText.text = "Connection failed.";
+            statusText.text = "<b>Connection failed.</b>";
             reconnectButton.visible = true;
             closeButton.visible = false;
         }
         
-        statusText.text = status;
+        statusText.text = "<b>"+status+"</b>";
     }
     
     function updateStates()
@@ -258,7 +279,7 @@ ApplicationWindow
         if (power == "ERR")
         {
             closeConnection();
-            statusText.text = "Connection closed by host. Try reconnecting.";
+            statusText.text = "<b>Connection closed by host. Try reconnecting.</b>";
             reconnectButton.visible = true;
             closeButton.visible = false;
         } else {
@@ -276,7 +297,7 @@ ApplicationWindow
                 if (hreverse == "ERR")
                 {
                     closeConnection();
-                    statusText.text = "Connection closed by host. Try reconnecting.";
+                    statusText.text = "<b>Connection closed by host. Try reconnecting.</b>";
                     reconnectButton.visible = true;
                     closeButton.visible = false;
                 } else {
@@ -287,21 +308,24 @@ ApplicationWindow
                     if (vreverse == "ERR")
                     {
                         closeConnection();
-                        statusText.text = "Connection closed by host. Try reconnecting.";
+                        statusText.text = "<b>Connection closed by host. Try reconnecting.</b>";
                         reconnectButton.visible = true;
                         closeButton.visible = false;
                     } else {
                         if (vreverse == "ON") { vreverseSwitch.checked = true; }
                         else { vreverseSwitch.checked = false; }
+                        updateTimer.running = true;
                     }
                 }
             } else {
-                powerSwitch.checked = false;
+                if (power == "02") { powerSwitch.checked = true; } else { powerSwitch.checked = false; }
                 
                 hreverseText.visible = false;
                 hreverseSwitch.visible = false;
                 vreverseText.visible = false;
                 vreverseSwitch.visible = false;
+                
+                updateTimer.running = true;
             }
         }
         
@@ -310,7 +334,7 @@ ApplicationWindow
         if (powIndex === -1)
         {
             closeConnection();
-            statusText.text = "Connection closed by host. Try reconnecting.";
+            statusText.text = "<b>Connection closed by host. Try reconnecting.</b>";
             reconnectButton.visible = true;
             closeButton.visible = false;
         } else {
