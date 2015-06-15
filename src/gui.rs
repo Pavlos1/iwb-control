@@ -88,7 +88,7 @@ pub fn stringify_vector(vector: Vec<(String, String)>) -> String
 {
     let mut ret = String::new();
     ret.push('[');
-    for i in vector
+    for i in vector.clone()
     {
         let (addr, name) = i;
         ret.push('"');
@@ -98,8 +98,11 @@ pub fn stringify_vector(vector: Vec<(String, String)>) -> String
         ret.push('"');
         ret = ret + ", ";
     }
-    let _ = ret.pop();
-    let _ = ret.pop();
+    if vector.len() != 0
+    {
+        let _ = ret.pop();
+        let _ = ret.pop();
+    }
     ret.push(']');
     ret
 }
