@@ -117,7 +117,11 @@ ApplicationWindow
                     id: powerSwitch
                     checked: false
                     visible: false
-                    onClicked: { if (!powerSwitch.checked) { Networking.send_command("PWR OFF"); } else { Networking.send_command("PWR ON"); } }
+                    MouseArea
+                    {
+                        anchors.fill: parent
+                        onClicked: { toggle(parent); if (!powerSwitch.checked) { Networking.send_command("PWR OFF"); } else { Networking.send_command("PWR ON"); } }
+                    }
                 }
                 
                 Text
@@ -146,7 +150,11 @@ ApplicationWindow
                     id: hreverseSwitch
                     checked: false
                     visible: false
-                    onClicked: { if (!hreverseSwitch.checked) { Networking.send_command("HREVERSE OFF"); } else { Networking.send_command("HREVERSE ON"); } }
+                    MouseArea
+                    {
+                        anchors.fill: parent
+                        onClicked: { toggle(parent); if (!hreverseSwitch.checked) { Networking.send_command("HREVERSE OFF"); } else { Networking.send_command("HREVERSE ON"); } }
+                    }
                 }
             }
                 
@@ -168,7 +176,11 @@ ApplicationWindow
                     id: vreverseSwitch
                     checked: false
                     visible: false
-                    onClicked: { if (!vreverseSwitch.checked) { Networking.send_command("VREVERSE OFF"); } else { Networking.send_command("VREVERSE ON"); } }
+                    MouseArea
+                    {
+                        anchors.fill: parent
+                        onClicked: { toggle(parent); if (!vreverseSwitch.checked) { Networking.send_command("VREVERSE OFF"); } else { Networking.send_command("VREVERSE ON"); } }
+                    }
                 }
             }
             
@@ -389,6 +401,12 @@ ApplicationWindow
             address = address+":3629";
         }
         return "Unknown @ "+address;
+    }
+    
+    function toggle(switch_)
+    {
+        if (switch_.checked == true) { switch_.checked = false; }
+        else { switch_.checked = true; }
     }
     
     function refresh_hosts_and_show()
