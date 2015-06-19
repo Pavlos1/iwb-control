@@ -1,5 +1,5 @@
 import QtQuick 2.2
-import QtQuick.Controls 1.2
+import QtQuick.Controls 1.1
 import QtQuick.Layouts 1.0
 
 ApplicationWindow
@@ -405,6 +405,6 @@ ApplicationWindow
         {
             hostsList.push(Qt.createQmlObject('import QtQuick 2.2; import QtQuick.Controls 1.2; Button { width: 150; height: 75; text: "'+formatDisplay(hosts[i])+'"; onClicked: openConnection("'+hosts[i]+'"); }', hostsLayout, "foo"));
         }
-        hostsList.push(Qt.createQmlObject('import QtQuick 2.2; import QtQuick.Controls 1.2; Button { width: 150; height: 75; opacity: 0; visible: true; }', hostsLayout, "foo"))
+        hostsList.push(Qt.createQmlObject('import QtQuick 2.2; import QtQuick.Controls 1.1; Button { width: 150; height: 75; opacity: 0; visible: true; }', hostsLayout, "foo"))
     }
 }
