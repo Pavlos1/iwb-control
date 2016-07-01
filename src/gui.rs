@@ -8,7 +8,7 @@ use std::net::TcpStream;
 struct Networking { stream: Option<TcpStream>, password: Option<String> }
 impl Networking
 {
-    fn discover_hosts(&self) -> String // this is a comment.
+    fn discover_hosts(&self) -> String
     {
         match networking::discover_hosts()
         {
